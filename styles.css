@@ -1,0 +1,338 @@
+/* General styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+/* Game board */
+.game-board {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+/* Switches */
+.switches-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.switch {
+    position: relative;
+    width: 60px;
+    height: 34px;
+    margin: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.switch-label {
+    margin-left: 70px;
+    line-height: 34px;
+}
+
+/* Light bulb */
+.lightbulb-container {
+    text-align: center;
+}
+
+.lightbulb {
+    position: relative;
+    margin: 0 auto 20px;
+    width: 80px;
+    height: 120px;
+}
+
+.bulb {
+    position: absolute;
+    top: 0;
+    left: 15px;
+    width: 50px;
+    height: 80px;
+    background-color: #f5f5f5;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.base {
+    position: absolute;
+    bottom: 0;
+    left: 30px;
+    width: 20px;
+    height: 40px;
+    background-color: #444;
+    border-radius: 2px;
+}
+
+.lightbulb.on .bulb {
+    background-color: #ffd700;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.7);
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#new-game-btn {
+    background-color: #2196F3;
+}
+
+#new-game-btn:hover {
+    background-color: #0b7dda;
+}
+
+#play-again-btn {
+    background-color: #9c27b0;
+}
+
+#play-again-btn:hover {
+    background-color: #7b1fa2;
+}
+
+.hint-btn {
+    background-color: #ff9800;
+}
+
+.hint-btn:hover {
+    background-color: #f57c00;
+}
+
+#close-hint-btn {
+    background-color: #757575;
+    margin-top: 10px;
+}
+
+#close-hint-btn:hover {
+    background-color: #616161;
+}
+
+/* Observations log */
+.observations {
+    margin-top: 30px;
+}
+
+.log {
+    height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.log-entry {
+    margin-bottom: 5px;
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Game info */
+.game-info {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#result-message {
+    font-weight: bold;
+    color: #4CAF50;
+    min-height: 20px;
+}
+
+#steps-remaining {
+    font-weight: bold;
+}
+
+/* Test Phase */
+.test-phase {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 2px solid #2196F3;
+    transition: all 0.3s ease;
+}
+
+.test-phase h2 {
+    color: #2196F3;
+    margin-top: 0;
+}
+
+.test-btn {
+    background-color: #ff9800;
+    padding: 12px 24px;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+.test-btn:hover {
+    background-color: #f57c00;
+}
+
+/* Game phases */
+#game-phase {
+    font-weight: bold;
+    color: #2196F3;
+}
+
+/* SCM Visualization */
+.scm-viz {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.viz-container {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.viz-content {
+    min-height: 400px;
+    width: 100%;
+    position: relative;
+}
+
+.node {
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+.node.hidden {
+    background-color: #f44336;
+    color: white;
+}
+
+.node.switch {
+    background-color: #2196F3;
+    color: white;
+}
+
+.node.light {
+    background-color: #ffd700;
+    color: black;
+}
+
+.edge {
+    position: absolute;
+    height: 3px;
+    background-color: white;
+    transform-origin: 0 0;
+    z-index: 1;
+}
+
+.arrowhead {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 16px solid white;
+    transform-origin: 50% 50%;
+    z-index: 3;
+}
+
+.edge-label {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: black;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+} 

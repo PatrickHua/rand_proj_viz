@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Causal Switch Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Causal Switch Game</h1>
+        
+        <div class="game-info">
+            <p>Goal: Make the light bulb turn ON</p>
+            <p>Phase: <span id="game-phase">Exploration</span></p>
+            <p>Steps remaining: <span id="steps-remaining">5</span></p>
+            <p id="result-message"></p>
+        </div>
+        
+        <div class="game-board">
+            <div class="switches-container" id="switches-container">
+                <!-- Switches will be dynamically added here -->
+            </div>
+            
+            <div class="lightbulb-container">
+                <div class="lightbulb" id="lightbulb">
+                    <div class="bulb"></div>
+                    <div class="base"></div>
+                </div>
+                <p>Light Bulb: <span id="lightbulb-state">OFF</span></p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="observe-btn">Observe (Do Nothing)</button>
+            <button id="new-game-btn">New Game</button>
+            <button id="play-again-btn">Play Again (Same Game)</button>
+            <button id="hint-btn" class="hint-btn">Show Hint</button>
+        </div>
+        
+        <!-- Test Phase UI (hidden initially) -->
+        <div id="test-phase-ui" class="test-phase" style="display: none;">
+            <h2>Test Phase</h2>
+            <p>Based on what you've learned, set the switches to turn the light bulb ON:</p>
+            
+            <div id="test-switches-container" class="switches-container">
+                <!-- Test switches will be dynamically added here -->
+            </div>
+            
+            <button id="test-strategy-btn" class="test-btn">Test My Strategy</button>
+        </div>
+        
+        <!-- SCM Visualization (hidden initially) -->
+        <div id="scm-visualization" class="scm-viz" style="display: none;">
+            <h2>Ground Truth Causal Model</h2>
+            <div class="viz-container">
+                <div id="viz-content" class="viz-content"></div>
+            </div>
+            <button id="close-hint-btn">Close Hint</button>
+        </div>
+        
+        <div class="observations">
+            <h2>Observations Log</h2>
+            <div id="observations-log" class="log"></div>
+        </div>
+    </div>
+    
+    <script src="scm.js"></script>
+    <script src="game.js"></script>
+</body>
+</html> 
