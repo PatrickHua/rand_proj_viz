@@ -3,69 +3,1019 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Causal Switch Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>2D Navigation POMDP Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .game-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .game-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .game-content.agent-view {
+            grid-template-columns: 1fr;
+            justify-items: center;
+        }
+
+        .main-grid-container {
+            transition: opacity 0.3s ease;
+        }
+
+        .main-grid-container.hidden {
+            display: none;
+        }
+
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .grid-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2px;
+            border: 3px solid #333;
+            border-radius: 8px;
+            background-color: #333;
+            padding: 2px;
+        }
+
+        .main-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .obs-grid {
+            grid-template-columns: repeat(3, 1fr);
+            border-color: #ff6b35;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .obs-cell {
+            width: 80px;
+            height: 80px;
+            font-size: 1.1em;
+        }
+
+        .cell-empty {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        .cell-agent {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .cell-goal {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .cell-obstacle {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .cell-oob {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .cell-observed {
+            box-shadow: 0 0 0 3px #17a2b8;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .controls-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #1e7e34;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .input-field {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 1em;
+            width: 80px;
+            text-align: center;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .info-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .legend {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .legend h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            list-style-position: inside;
+            line-height: 1.6;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .game-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .cell {
+                width: 45px;
+                height: 45px;
+                font-size: 0.8em;
+            }
+            
+            .obs-cell {
+                width: 60px;
+                height: 60px;
+                font-size: 1em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Causal Switch Game</h1>
-        
-        <div class="game-info">
-            <p>Goal: Make the light bulb turn ON</p>
-            <p>Phase: <span id="game-phase">Exploration</span></p>
-            <p>Steps remaining: <span id="steps-remaining">5</span></p>
-            <p id="result-message"></p>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>2D Navigation POMDP</h1>
+            <p>Navigate the agent to the goal while avoiding obstacles in this partially observable environment</p>
         </div>
-        
-        <div class="game-board">
-            <div class="switches-container" id="switches-container">
-                <!-- Switches will be dynamically added here -->
-            </div>
-            
-            <div class="lightbulb-container">
-                <div class="lightbulb" id="lightbulb">
-                    <div class="bulb"></div>
-                    <div class="base"></div>
+
+        <div class="controls-panel">
+            <div class="controls-row">
+                <div class="control-group">
+                    <label>Max Steps:</label>
+                    <input type="number" id="maxSteps" class="input-field" value="50" min="10" max="200">
                 </div>
-                <p>Light Bulb: <span id="lightbulb-state">OFF</span></p>
+                <div class="control-group">
+                    <label>View Mode:</label>
+                    <select id="viewMode" class="input-field" style="width: 120px;">
+                        <option value="agent">Agent View</option>
+                        <option value="god">God Mode</option>
+                        <option value="partial">Partial God</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="resetGame()">New Game</button>
+                <button class="btn btn-success" onclick="toggleAutoPlay()" id="autoPlayBtn">Auto Play</button>
+            </div>
+            <div class="controls-row">
+                <button class="btn btn-warning" onclick="makeMove('up')">↑ Up</button>
+                <button class="btn btn-warning" onclick="makeMove('down')">↓ Down</button>
+                <button class="btn btn-warning" onclick="makeMove('left')">← Left</button>
+                <button class="btn btn-warning" onclick="makeMove('right')">→ Right</button>
+                <button class="btn btn-warning" onclick="makeMove('stay')">⏸ Stay</button>
             </div>
         </div>
-        
-        <div class="controls">
-            <button id="observe-btn">Observe (Do Nothing)</button>
-            <button id="new-game-btn">New Game</button>
-            <button id="play-again-btn">Play Again (Same Game)</button>
-            <button id="hint-btn" class="hint-btn">Show Hint</button>
-        </div>
-        
-        <!-- Test Phase UI (hidden initially) -->
-        <div id="test-phase-ui" class="test-phase" style="display: none;">
-            <h2>Test Phase</h2>
-            <p>Based on what you've learned, set the switches to turn the light bulb ON:</p>
-            
-            <div id="test-switches-container" class="switches-container">
-                <!-- Test switches will be dynamically added here -->
+
+        <div class="game-content" id="gameContent">
+            <div class="grid-container main-grid-container" id="mainGridContainer">
+                <div class="grid-title" id="mainGridTitle">Full 5×5 Grid</div>
+                <div class="grid main-grid" id="mainGrid"></div>
             </div>
-            
-            <button id="test-strategy-btn" class="test-btn">Test My Strategy</button>
-        </div>
-        
-        <!-- SCM Visualization (hidden initially) -->
-        <div id="scm-visualization" class="scm-viz" style="display: none;">
-            <h2>Ground Truth Causal Model</h2>
-            <div class="viz-container">
-                <div id="viz-content" class="viz-content"></div>
+            <div class="grid-container">
+                <div class="grid-title">Agent's 3×3 Observation</div>
+                <div class="grid obs-grid" id="obsGrid"></div>
             </div>
-            <button id="close-hint-btn">Close Hint</button>
         </div>
-        
-        <div class="observations">
-            <h2>Observations Log</h2>
-            <div id="observations-log" class="log"></div>
+
+        <div class="info-panel">
+            <div class="info-card">
+                <h3>Current Step</h3>
+                <div class="info-value" id="currentStep">0</div>
+            </div>
+            <div class="info-card">
+                <h3>Total Reward</h3>
+                <div class="info-value" id="totalReward">0.0</div>
+            </div>
+            <div class="info-card" id="agentPosCard">
+                <h3>Agent Position</h3>
+                <div class="info-value" id="agentPos">(0, 0)</div>
+            </div>
+            <div class="info-card" id="goalPosCard">
+                <h3>Goal Position</h3>
+                <div class="info-value" id="goalPos">(?, ?)</div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>Legend</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #007bff;"></div>
+                    <span>Agent</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #28a745;"></div>
+                    <span>Goal</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #dc3545;"></div>
+                    <span>Obstacle</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #f8f9fa; border-color: #333;"></div>
+                    <span>Empty</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #6c757d;"></div>
+                    <span>Out of Bounds</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #17a2b8;"></div>
+                    <span>Observed Area</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How to Play</h3>
+            <ul>
+                <li><strong>Objective:</strong> Navigate the blue agent to the green goal while avoiding red obstacles</li>
+                <li><strong>Controls:</strong> Use the directional buttons or arrow keys to move the agent</li>
+                <li><strong>View Modes:</strong></li>
+                <ul>
+                    <li><strong>Agent View:</strong> True POMDP experience - only see the 3×3 observation, no position info</li>
+                    <li><strong>Partial God:</strong> See the 5×5 grid but only reveal observed areas</li>
+                    <li><strong>God Mode:</strong> Full omniscient view of the entire environment</li>
+                </ul>
+                <li><strong>Observation:</strong> The agent can only see a 3×3 area around itself (shown on the right)</li>
+                <li><strong>Rewards:</strong> +1 for reaching the goal for the first time, 0 otherwise</li>
+                <li><strong>Auto Play:</strong> Watch the AI policy play automatically</li>
+                <li><strong>Max Steps:</strong> Episode ends when maximum steps are reached</li>
+                <li><strong>Keyboard Shortcuts:</strong> Arrow keys (move), Space (stay), R (reset), A (auto-play), G (cycle view mode)</li>
+            </ul>
         </div>
     </div>
-    
-    <script src="scm.js"></script>
-    <script src="game.js"></script>
+
+    <script>
+        // Game state
+        let gameState = {
+            gridSize: 5,
+            obsSize: 3,
+            maxSteps: 50,
+            currentStep: 0,
+            totalReward: 0,
+            agentPos: {x: 0, y: 0},
+            goalPos: {x: 0, y: 0},
+            obstacles: [],
+            goalReached: false,
+            gameOver: false,
+            viewMode: 'agent',
+            autoPlay: false,
+            autoPlayInterval: null
+        };
+
+        // Initialize game
+        function initGame() {
+            createGrids();
+            resetGame();
+            setupEventListeners();
+        }
+
+        function createGrids() {
+            // Create main grid
+            const mainGrid = document.getElementById('mainGrid');
+            mainGrid.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell cell-empty';
+                cell.id = `main-${i}`;
+                mainGrid.appendChild(cell);
+            }
+
+            // Create observation grid
+            const obsGrid = document.getElementById('obsGrid');
+            obsGrid.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell obs-cell cell-empty';
+                cell.id = `obs-${i}`;
+                obsGrid.appendChild(cell);
+            }
+        }
+
+        function resetGame() {
+            // Reset game state
+            gameState.maxSteps = parseInt(document.getElementById('maxSteps').value);
+            gameState.currentStep = 0;
+            gameState.totalReward = 0;
+            gameState.goalReached = false;
+            gameState.gameOver = false;
+
+            // Generate random positions
+            generatePositions();
+            
+            // Update display
+            updateDisplay();
+            updateInfo();
+
+            // Stop auto play
+            if (gameState.autoPlay) {
+                toggleAutoPlay();
+            }
+        }
+
+        function generatePositions() {
+            const positions = new Set();
+            
+            // Generate agent position
+            do {
+                gameState.agentPos = {
+                    x: Math.floor(Math.random() * gameState.gridSize),
+                    y: Math.floor(Math.random() * gameState.gridSize)
+                };
+            } while (positions.has(`${gameState.agentPos.x},${gameState.agentPos.y}`));
+            positions.add(`${gameState.agentPos.x},${gameState.agentPos.y}`);
+
+            // Generate goal position
+            do {
+                gameState.goalPos = {
+                    x: Math.floor(Math.random() * gameState.gridSize),
+                    y: Math.floor(Math.random() * gameState.gridSize)
+                };
+            } while (positions.has(`${gameState.goalPos.x},${gameState.goalPos.y}`));
+            positions.add(`${gameState.goalPos.x},${gameState.goalPos.y}`);
+
+            // Generate obstacle positions (3 obstacles)
+            gameState.obstacles = [];
+            for (let i = 0; i < 3; i++) {
+                let obsPos;
+                do {
+                    obsPos = {
+                        x: Math.floor(Math.random() * gameState.gridSize),
+                        y: Math.floor(Math.random() * gameState.gridSize)
+                    };
+                } while (positions.has(`${obsPos.x},${obsPos.y}`));
+                positions.add(`${obsPos.x},${obsPos.y}`);
+                gameState.obstacles.push(obsPos);
+            }
+        }
+
+        function makeMove(direction) {
+            if (gameState.gameOver) return;
+
+            const oldPos = {...gameState.agentPos};
+            let newPos = {...gameState.agentPos};
+
+            // Calculate new position
+            switch (direction) {
+                case 'up':
+                    if (newPos.y > 0) newPos.y--;
+                    break;
+                case 'down':
+                    if (newPos.y < gameState.gridSize - 1) newPos.y++;
+                    break;
+                case 'left':
+                    if (newPos.x > 0) newPos.x--;
+                    break;
+                case 'right':
+                    if (newPos.x < gameState.gridSize - 1) newPos.x++;
+                    break;
+                case 'stay':
+                    // No movement
+                    break;
+            }
+
+            // Check for obstacle collision
+            const collision = gameState.obstacles.some(obs => 
+                obs.x === newPos.x && obs.y === newPos.y
+            );
+
+            if (!collision) {
+                gameState.agentPos = newPos;
+            }
+
+            // Check if goal reached for the first time
+            if (!gameState.goalReached && 
+                gameState.agentPos.x === gameState.goalPos.x && 
+                gameState.agentPos.y === gameState.goalPos.y) {
+                gameState.goalReached = true;
+                gameState.totalReward += 1.0;
+            }
+
+            // Increment step counter
+            gameState.currentStep++;
+
+            // Check if game over
+            if (gameState.currentStep >= gameState.maxSteps) {
+                gameState.gameOver = true;
+                if (gameState.autoPlay) {
+                    toggleAutoPlay();
+                }
+            }
+
+            updateDisplay();
+            updateInfo();
+        }
+
+        function updateDisplay() {
+            updateViewMode();
+            updateMainGrid();
+            updateObservationGrid();
+        }
+
+        function updateViewMode() {
+            const viewMode = document.getElementById('viewMode').value;
+            const gameContent = document.getElementById('gameContent');
+            const mainGridContainer = document.getElementById('mainGridContainer');
+            const agentPosCard = document.getElementById('agentPosCard');
+            const goalPosCard = document.getElementById('goalPosCard');
+
+            gameState.viewMode = viewMode;
+
+            if (viewMode === 'agent') {
+                // Agent view: hide left panel and position info
+                gameContent.classList.add('agent-view');
+                mainGridContainer.classList.add('hidden');
+                agentPosCard.style.display = 'none';
+                goalPosCard.style.display = 'none';
+            } else {
+                // God mode or partial god: show left panel and position info
+                gameContent.classList.remove('agent-view');
+                mainGridContainer.classList.remove('hidden');
+                agentPosCard.style.display = 'block';
+                goalPosCard.style.display = 'block';
+            }
+        }
+
+        function updateMainGrid() {
+            const viewMode = document.getElementById('viewMode').value;
+            const mainGrid = document.getElementById('mainGrid');
+            const title = document.getElementById('mainGridTitle');
+            
+            if (viewMode === 'god') {
+                title.textContent = 'Full 5×5 Grid (God Mode)';
+                title.style.color = '#dc3545';
+            } else if (viewMode === 'partial') {
+                title.textContent = 'Full 5×5 Grid (Partial View)';
+                title.style.color = '#ffc107';
+            } else {
+                title.textContent = 'Full 5×5 Grid (Hidden)';
+                title.style.color = '#6c757d';
+            }
+
+            // Clear all cells
+            for (let i = 0; i < 25; i++) {
+                const cell = document.getElementById(`main-${i}`);
+                cell.className = 'cell cell-empty';
+                cell.textContent = '';
+            }
+
+            if (viewMode === 'god') {
+                // Full god mode: show everything
+                const goalIndex = gameState.goalPos.y * gameState.gridSize + gameState.goalPos.x;
+                const goalCell = document.getElementById(`main-${goalIndex}`);
+                goalCell.className = 'cell cell-goal';
+                goalCell.textContent = 'G';
+
+                gameState.obstacles.forEach(obs => {
+                    const obsIndex = obs.y * gameState.gridSize + obs.x;
+                    const obsCell = document.getElementById(`main-${obsIndex}`);
+                    obsCell.className = 'cell cell-obstacle';
+                    obsCell.textContent = '#';
+                });
+
+                // Highlight observed area
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const obsX = gameState.agentPos.x + dx;
+                        const obsY = gameState.agentPos.y + dy;
+                        if (obsX >= 0 && obsX < gameState.gridSize && 
+                            obsY >= 0 && obsY < gameState.gridSize) {
+                            const obsIndex = obsY * gameState.gridSize + obsX;
+                            const obsCell = document.getElementById(`main-${obsIndex}`);
+                            obsCell.classList.add('cell-observed');
+                        }
+                    }
+                }
+            } else if (viewMode === 'partial') {
+                // Partial god mode: show only observed area
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const obsX = gameState.agentPos.x + dx;
+                        const obsY = gameState.agentPos.y + dy;
+                        if (obsX >= 0 && obsX < gameState.gridSize && 
+                            obsY >= 0 && obsY < gameState.gridSize) {
+                            const obsIndex = obsY * gameState.gridSize + obsX;
+                            const obsCell = document.getElementById(`main-${obsIndex}`);
+                            
+                            if (obsX === gameState.goalPos.x && obsY === gameState.goalPos.y) {
+                                obsCell.className = 'cell cell-goal';
+                                obsCell.textContent = 'G';
+                            } else if (gameState.obstacles.some(obs => obs.x === obsX && obs.y === obsY)) {
+                                obsCell.className = 'cell cell-obstacle';
+                                obsCell.textContent = '#';
+                            } else {
+                                obsCell.className = 'cell cell-empty';
+                                obsCell.textContent = '.';
+                            }
+                            obsCell.classList.add('cell-observed');
+                        }
+                    }
+                }
+                
+                // Show unknown for non-observed areas
+                for (let i = 0; i < 25; i++) {
+                    const cell = document.getElementById(`main-${i}`);
+                    if (!cell.classList.contains('cell-observed')) {
+                        cell.textContent = '?';
+                        cell.style.color = '#ccc';
+                    }
+                }
+            } else {
+                // Agent view: this shouldn't be called since the grid is hidden
+                for (let i = 0; i < 25; i++) {
+                    const cell = document.getElementById(`main-${i}`);
+                    cell.className = 'cell cell-empty';
+                    cell.textContent = '?';
+                    cell.style.color = '#ccc';
+                }
+            }
+
+            // Always show agent
+            const agentIndex = gameState.agentPos.y * gameState.gridSize + gameState.agentPos.x;
+            const agentCell = document.getElementById(`main-${agentIndex}`);
+            agentCell.className = 'cell cell-agent';
+            agentCell.textContent = 'A';
+        }
+
+        function updateObservationGrid() {
+            // Clear observation grid
+            for (let i = 0; i < 9; i++) {
+                const cell = document.getElementById(`obs-${i}`);
+                cell.className = 'cell obs-cell cell-empty';
+                cell.textContent = '';
+            }
+
+            // Fill observation grid based on agent's view
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const worldX = gameState.agentPos.x + (j - 1);
+                    const worldY = gameState.agentPos.y + (i - 1);
+                    const obsIndex = i * 3 + j;
+                    const cell = document.getElementById(`obs-${obsIndex}`);
+
+                    if (i === 1 && j === 1) {
+                        // Agent position (center)
+                        cell.className = 'cell obs-cell cell-agent';
+                        cell.textContent = 'A';
+                    } else if (worldX < 0 || worldX >= gameState.gridSize || 
+                               worldY < 0 || worldY >= gameState.gridSize) {
+                        // Out of bounds
+                        cell.className = 'cell obs-cell cell-oob';
+                        cell.textContent = 'X';
+                    } else if (worldX === gameState.goalPos.x && worldY === gameState.goalPos.y) {
+                        // Goal
+                        cell.className = 'cell obs-cell cell-goal';
+                        cell.textContent = 'G';
+                    } else if (gameState.obstacles.some(obs => obs.x === worldX && obs.y === worldY)) {
+                        // Obstacle
+                        cell.className = 'cell obs-cell cell-obstacle';
+                        cell.textContent = '#';
+                    } else {
+                        // Empty
+                        cell.className = 'cell obs-cell cell-empty';
+                        cell.textContent = '.';
+                    }
+                }
+            }
+        }
+
+        function updateInfo() {
+            document.getElementById('currentStep').textContent = `${gameState.currentStep}/${gameState.maxSteps}`;
+            document.getElementById('totalReward').textContent = gameState.totalReward.toFixed(1);
+            
+            const viewMode = document.getElementById('viewMode').value;
+            if (viewMode !== 'agent') {
+                document.getElementById('agentPos').textContent = `(${gameState.agentPos.x}, ${gameState.agentPos.y})`;
+                if (viewMode === 'god') {
+                    document.getElementById('goalPos').textContent = `(${gameState.goalPos.x}, ${gameState.goalPos.y})`;
+                } else {
+                    document.getElementById('goalPos').textContent = '(?, ?)';
+                }
+            }
+        }
+
+        function toggleAutoPlay() {
+            gameState.autoPlay = !gameState.autoPlay;
+            const btn = document.getElementById('autoPlayBtn');
+            
+            if (gameState.autoPlay) {
+                btn.textContent = 'Stop Auto';
+                btn.className = 'btn btn-danger';
+                gameState.autoPlayInterval = setInterval(autoPlayStep, 500);
+            } else {
+                btn.textContent = 'Auto Play';
+                btn.className = 'btn btn-success';
+                if (gameState.autoPlayInterval) {
+                    clearInterval(gameState.autoPlayInterval);
+                    gameState.autoPlayInterval = null;
+                }
+            }
+        }
+
+        function autoPlayStep() {
+            if (gameState.gameOver) {
+                toggleAutoPlay();
+                return;
+            }
+
+            const action = getSimplePolicyAction();
+            makeMove(action);
+        }
+
+        function getSimplePolicyAction() {
+            // Simple policy: move towards goal if visible, otherwise explore safely
+            
+            // Check if goal is visible in observation
+            let goalDirection = null;
+            
+            // Check 3x3 observation for goal
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const worldX = gameState.agentPos.x + (j - 1);
+                    const worldY = gameState.agentPos.y + (i - 1);
+                    
+                    if (worldX === gameState.goalPos.x && worldY === gameState.goalPos.y) {
+                        // Goal found, determine direction
+                        const di = i - 1; // -1: up, 0: same row, 1: down
+                        const dj = j - 1; // -1: left, 0: same col, 1: right
+                        
+                        if (Math.abs(di) > Math.abs(dj)) {
+                            goalDirection = di < 0 ? 'up' : 'down';
+                        } else {
+                            goalDirection = dj < 0 ? 'left' : 'right';
+                        }
+                        break;
+                    }
+                }
+                if (goalDirection) break;
+            }
+
+            if (goalDirection) {
+                return goalDirection;
+            }
+
+            // Goal not visible - explore safely
+            const safeMoves = [];
+            
+            // Check each direction for safety
+            const directions = [
+                {name: 'up', dx: 0, dy: -1},
+                {name: 'down', dx: 0, dy: 1},
+                {name: 'left', dx: -1, dy: 0},
+                {name: 'right', dx: 1, dy: 0}
+            ];
+
+            directions.forEach(dir => {
+                const newX = gameState.agentPos.x + dir.dx;
+                const newY = gameState.agentPos.y + dir.dy;
+                
+                // Check bounds
+                if (newX >= 0 && newX < gameState.gridSize && 
+                    newY >= 0 && newY < gameState.gridSize) {
+                    // Check obstacles
+                    const hasObstacle = gameState.obstacles.some(obs => 
+                        obs.x === newX && obs.y === newY
+                    );
+                    if (!hasObstacle) {
+                        safeMoves.push(dir.name);
+                    }
+                }
+            });
+
+            // Always allow staying
+            safeMoves.push('stay');
+
+            // Return random safe move
+            return safeMoves[Math.floor(Math.random() * safeMoves.length)];
+        }
+
+        function cycleViewMode() {
+            const viewModeSelect = document.getElementById('viewMode');
+            const currentIndex = viewModeSelect.selectedIndex;
+            const nextIndex = (currentIndex + 1) % viewModeSelect.options.length;
+            viewModeSelect.selectedIndex = nextIndex;
+            updateDisplay();
+        }
+
+        function setupEventListeners() {
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if (gameState.autoPlay) return;
+                
+                switch (e.key) {
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        makeMove('up');
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        makeMove('down');
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        makeMove('left');
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        makeMove('right');
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        makeMove('stay');
+                        break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault();
+                        resetGame();
+                        break;
+                    case 'a':
+                    case 'A':
+                        e.preventDefault();
+                        toggleAutoPlay();
+                        break;
+                    case 'g':
+                    case 'G':
+                        e.preventDefault();
+                        cycleViewMode();
+                        break;
+                }
+            });
+
+            // View mode toggle
+            document.getElementById('viewMode').addEventListener('change', updateDisplay);
+
+            // Max steps input
+            document.getElementById('maxSteps').addEventListener('change', () => {
+                if (!gameState.gameOver && gameState.currentStep === 0) {
+                    gameState.maxSteps = parseInt(document.getElementById('maxSteps').value);
+                    updateInfo();
+                }
+            });
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
 </body>
-</html> 
+</html>
